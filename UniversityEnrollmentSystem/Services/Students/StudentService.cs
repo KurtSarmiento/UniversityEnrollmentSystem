@@ -17,12 +17,12 @@ namespace UniversityEnrollmentSystem.Services.Students
             {
                 throw new Exception("Student number must be unique");
             }
-            _studentRepository.AddStudent(student);
+            await _studentRepository.AddStudent(student);
         }
 
         public async Task DeleteStudent(int id)
         {
-            _studentRepository.DeleteStudent(id);
+            await _studentRepository.DeleteStudent(id);
         }
 
         public Task<List<Student>> GetAllStudents()
@@ -37,7 +37,7 @@ namespace UniversityEnrollmentSystem.Services.Students
 
         public async Task UpdateStudent(Student student)
         {
-            _studentRepository.UpdateStudent(student);
+            await _studentRepository.UpdateStudent(student);
         }
 
         public async Task<Student> GetStudentByStudentNumber(int studentNumber)
