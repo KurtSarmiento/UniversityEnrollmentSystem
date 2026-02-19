@@ -16,8 +16,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Services\" />
     <Folder Include="Repositories\" />
+    <Folder Include="Services\CourseOfferings\" />
+    <Folder Include="Services\Enrollments\" />
   </ItemGroup>
 
 </Project>
