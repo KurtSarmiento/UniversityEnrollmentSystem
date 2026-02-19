@@ -41,6 +41,8 @@ namespace UniversityEnrollmentSystem.Tests
 
             _mock.Setup(repo => repo.ExistsAsync(courseId))
                            .ReturnsAsync(true);
+            _mock.Setup(repo => repo.HasEnrollmentsForCourseAsync(courseId))
+                            .ReturnsAsync(true);
             var result = await _service.DeleteCourseAsync(courseId);
 
             Assert.False(result);
