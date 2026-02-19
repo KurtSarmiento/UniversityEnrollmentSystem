@@ -15,4 +15,3 @@ public partial class Course
 
     public virtual ICollection<CourseOffering> CourseOfferings { get; set; } = new List<CourseOffering>();
 }
-abcd
