@@ -35,5 +35,10 @@ namespace UniversityEnrollmentSystem.Repositories.Student
             _context.Students.Update(student);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<Models.Database.Student?> GetStudentByStudentNumber(int studentNumber)
+        {
+            return await _context.Students.FirstOrDefaultAsync(s => s.StudentNumber == studentNumber);
+        }
     }
 }

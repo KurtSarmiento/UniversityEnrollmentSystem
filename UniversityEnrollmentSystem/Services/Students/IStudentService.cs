@@ -9,5 +9,6 @@ namespace UniversityEnrollmentSystem.Services.Students
         Task DeleteStudent(int id);
         Task<List<Student>> GetAllStudents();
         Task<Student?> GetStudentById(int id);
+        Task<Student> GetStudentByStudentNumber(int studentNumber);
     }
 }

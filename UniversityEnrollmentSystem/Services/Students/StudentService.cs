@@ -8,6 +8,11 @@ namespace UniversityEnrollmentSystem.Services.Students
         private readonly IStudentRepository _studentRepository = studentRepository;
         public async Task CreateStudent(Student student)
         {
+            var existing = await _studentRepository.GetStudentByStudentNumber(student.StudentNumber);
+            if (existing != null)
+            {
+                throw new Exception("Student number must be unique");
+            }
             _studentRepository.AddStudent(student);
         }
 
@@ -29,6 +34,12 @@ namespace UniversityEnrollmentSystem.Services.Students
         public async Task UpdateStudent(Student student)
         {
             _studentRepository.UpdateStudent(student);
+        }
+
+        public async Task<Student> GetStudentByStudentNumber(int studentNumber)
+        {
+
+            return await _studentRepository.GetStudentByStudentNumber(studentNumber);
         }
     }
 }

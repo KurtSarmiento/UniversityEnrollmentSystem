@@ -48,12 +48,15 @@ namespace UniversityEnrollmentSystem.Tests
         {
             var student = CreateValidStudent();
 
-            _repo.Setup(r => r.AddStudent(student))
-                 .Returns(Task.CompletedTask);
+            _repo.Setup(r => r.GetStudentByStudentNumber(student.StudentNumber))
+                 .ReturnsAsync(new Student());
 
-            await _studentService.CreateStudent(student);
+            await Assert.ThrowsAsync<Exception>(() =>
+                _studentService.CreateStudent(student)
+            );
 
-            _repo.Verify(r => r.AddStudent(student), Times.Once);
+            _repo.Verify(r => r.AddStudent(It.IsAny<Student>()), Times.Never);
         }
+
     }
 }
