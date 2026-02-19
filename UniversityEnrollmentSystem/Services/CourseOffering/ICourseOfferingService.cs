@@ -10,5 +10,6 @@ namespace UniversityEnrollmentSystem.Services
         Task<CourseOffering> GetOfferingByIdAsync(int id);
         Task<IEnumerable<CourseOffering>> GetAllOfferingsAsync();
         Task<bool> DeleteOfferingAsync(int id);
+        Task<bool> DeleteCourseAsync(int courseId);
     }
 }

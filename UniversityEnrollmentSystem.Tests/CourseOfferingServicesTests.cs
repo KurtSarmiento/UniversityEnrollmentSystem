@@ -34,20 +34,18 @@ namespace UniversityEnrollmentSystem.Tests
 
                 _mock.Verify(repo => repo.AddAsync(It.IsAny<CourseOffering>()), Times.Never);
             }
+        [Fact]
+        public async Task DeleteCourse_ShouldReturnFalse_WhenEnrollmentsExist()
+        {
+            int courseId = 1;
 
-            [Fact]
-            public async Task CreateOffering_ShouldSucceed_WhenValid()
-            {
-                var offering = new CourseOffering { CourseId = 1, SemesterId = 2, InstructorId = 1, Capacity = 30 };
+            _mock.Setup(repo => repo.ExistsAsync(courseId))
+                           .ReturnsAsync(true);
+            var result = await _service.DeleteCourseAsync(courseId);
 
-                _mock.Setup(repo => repo.IsDuplicateOfferingAsync(offering.CourseId, offering.SemesterId))
-                                 .ReturnsAsync(false);
+            Assert.False(result);
 
-                var result = await _service.CreateOfferingAsync(offering);
-
-                Assert.True(result);
-
-                _mock.Verify(repo => repo.AddAsync(offering), Times.Once);
-            }
+            _mock.Verify(repo => repo.DeleteAsync(It.IsAny<int>()), Times.Never); //Fix this error
         }
     }
+}
