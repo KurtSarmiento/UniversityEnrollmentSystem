@@ -46,5 +46,13 @@ namespace UniversityEnrollmentSystem.Services
             await _Repo.DeleteAsync(id);
             return true;
         }
+        public async Task<bool> DeleteCourseAsync(int courseId)
+        {
+            if (await _Repo.HasEnrollmentsForCourseAsync(courseId))
+            {
+                return false;
+            }
+            return true;
+        }
     }
 }

@@ -63,5 +63,6 @@ namespace UniversityEnrollmentSystem.Repositories.Enrollment
             return await _context.Enrollments
                 .AnyAsync(e => e.StudentId == studentId && e.CourseOfferingId == courseOfferingId);
         }
+
     }
 }
