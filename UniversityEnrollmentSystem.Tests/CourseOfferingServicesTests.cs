@@ -69,8 +69,38 @@ namespace UniversityEnrollmentSystem.Tests
             _mock.Setup(repo => repo.IsDuplicateOfferingAsync(offering.CourseId, offering.SemesterId))
                              .ReturnsAsync(true);
             var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateOfferingAsync(offering));
-            Assert.Equal("Course offering already exists for this.", ex.Message);
+            Assert.Equal("Course offering already exists for this semester.", ex.Message);
             _mock.Verify(repo => repo.AddAsync(It.IsAny<CourseOffering>()), Times.Never);
+        }
+        [Fact]
+        public async Task UpdateCourse_ShouldPersistChanges()
+        {
+            var offering = new CourseOffering { CourseOfferingId = 1, CourseId = 1, SemesterId = 2 };
+            _mock.Setup(repo => repo.GetByIdAsync(offering.CourseOfferingId))
+                             .ReturnsAsync(offering);
+            offering.SemesterId = 3;
+            await _service.CreateOfferingAsync(offering);
+            _mock.Verify(repo => repo.AddAsync(offering), Times.Once);
+        }
+
+        [Fact]
+        public async Task CourseOffering_ShouldBeUnique_PerSemester()
+        {
+            var offering = new CourseOffering { CourseId = 1, SemesterId = 2 };
+            _mock.Setup(repo => repo.IsDuplicateOfferingAsync(offering.CourseId, offering.SemesterId))
+                             .ReturnsAsync(true);
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateOfferingAsync(offering));
+            Assert.Equal("Course offering already exists for this semester.", ex.Message);
+            _mock.Verify(repo => repo.AddAsync(It.IsAny<CourseOffering>()), Times.Never);
+        }
+        [Fact]
+        public async Task Repository_GetById_ShouldReturnNull_WhenInvalid()
+        {
+            int Id = 27;
+            _mock.Setup(repo => repo.GetByIdAsync(Id))
+                             .ReturnsAsync((CourseOffering)null);
+            var result = await _service.GetOfferingByIdAsync(Id);
+            Assert.Null(result);
         }
     }
 }
