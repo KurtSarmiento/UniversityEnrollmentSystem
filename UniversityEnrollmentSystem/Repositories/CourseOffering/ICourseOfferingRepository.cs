@@ -9,5 +9,6 @@
             Task DeleteAsync(int id);
             Task<bool> ExistsAsync(int id);
             Task<bool> IsDuplicateOfferingAsync(int courseId, int semesterId);
-        }
+            Task<bool> HasEnrollmentsForCourseAsync(int courseId);
+    }
     }

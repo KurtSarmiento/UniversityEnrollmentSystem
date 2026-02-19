@@ -62,5 +62,10 @@ namespace UniversityEnrollmentSystem.Repositories.CourseOffering
             return await _context.CourseOfferings
                 .AnyAsync(co => co.CourseId == courseId && co.SemesterId == semesterId);
         }
+        public async Task<bool> HasEnrollmentsForCourseAsync(int courseId)
+        {
+            return await _context.Enrollments
+                .AnyAsync(e => e.CourseOffering.CourseId == courseId);
+        }
     }
 }
