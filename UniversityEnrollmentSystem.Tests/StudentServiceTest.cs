@@ -57,6 +57,21 @@ namespace UniversityEnrollmentSystem.Tests
 
             _repo.Verify(r => r.AddStudent(It.IsAny<Student>()), Times.Never);
         }
+        [Fact]
+        public async Task RegisterStudent_ShouldPreventDuplicateStudentNumber()
+        {
+            var student = CreateValidStudent();
+
+            _repo.Setup(r => r.GetStudentByStudentNumber(student.StudentNumber))
+                 .ReturnsAsync(new Student());
+
+            await Assert.ThrowsAsync<Exception>(() =>
+                _studentService.CreateStudent(student));
+
+            _repo.Verify(r => r.AddStudent(It.IsAny<Student>()), Times.Never);
+        }
+
+
 
     }
 }
