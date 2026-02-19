@@ -71,6 +71,19 @@ namespace UniversityEnrollmentSystem.Tests
             _repo.Verify(r => r.AddStudent(It.IsAny<Student>()), Times.Never);
         }
 
+        [Fact]
+        public async Task RequiredFields_ShouldRejectNull_WhenStudentNameIsNull()
+        {
+            var student = new Student
+            {
+                StudentNumber = 2024001,
+                FirstName = "", // Required field missing
+                LastName = "Sarmiento",
+            };
+
+            await Assert.ThrowsAsync<Exception>(() =>
+                _studentService.CreateStudent(student));
+        }
 
 
     }
