@@ -9,6 +9,10 @@ namespace UniversityEnrollmentSystem.Services.Students
         public async Task CreateStudent(Student student)
         {
             var existing = await _studentRepository.GetStudentByStudentNumber(student.StudentNumber);
+            if (string.IsNullOrEmpty(student.FirstName))
+            {
+                throw new Exception("Student name must not be empty");
+            }
             if (existing != null)
             {
                 throw new Exception("Student number must be unique");
