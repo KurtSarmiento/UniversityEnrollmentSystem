@@ -142,5 +142,56 @@ namespace UniversityEnrollmentSystem.Tests
             Assert.Equal(95.0m, enrollment.FinalGrade);
             _mockEnrollmentRepo.Verify(r => r.UpdateAsync(enrollment), Times.Once);
         }
+
+        [Fact]
+        public async Task Enrollment_ShouldBeUnique_PerStudentOffering()
+        {
+            var offering = new CourseOffering
+            {
+                CourseOfferingId = 1,
+                Capacity = 30,
+                Enrollments = new List<Enrollment>
+        {
+            new Enrollment { StudentId = 1 }
+        },
+                Semester = new Semester
+                {
+                    StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-10)),
+                    EndDate = DateOnly.FromDateTime(DateTime.Now.AddDays(10))
+                }
+            };
+
+            _mockOfferingRepo
+                .Setup(repo => repo.GetByIdAsync(1))
+                .ReturnsAsync(offering);
+
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                _service.EnrollStudentAsync(1, 1));
+
+            Assert.Equal("Student is already enrolled in this offering.", ex.Message);
+
+            _mockEnrollmentRepo.Verify(
+                r => r.AddAsync(It.IsAny<Models.Database.Enrollment>()),
+                Times.Never);
+        }
+
+        [Fact]
+        public async Task ForeignKey_ShouldPreventInvalidEnrollment()
+        {
+            _mockOfferingRepo
+                .Setup(repo => repo.GetByIdAsync(999))
+                .ReturnsAsync((CourseOffering?)null);
+
+            var ex = await Assert.ThrowsAsync<ArgumentException>(() =>
+                _service.EnrollStudentAsync(1, 999));
+
+            Assert.Equal("Invalid Course Offering.", ex.Message);
+
+            _mockEnrollmentRepo.Verify(
+                r => r.AddAsync(It.IsAny<Models.Database.Enrollment>()),
+                Times.Never);
+        }
+
+
     }
 }
