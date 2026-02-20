@@ -30,6 +30,11 @@ namespace UniversityEnrollmentSystem.Repositories.Student
             return await _context.Students.FirstOrDefaultAsync(s => s.StudentId == id);
         }
 
+        public async Task <bool> ExistsAsync(int id)
+        {
+            return await _context.Students.AnyAsync(s => s.StudentId == id);
+        }
+
         public async Task UpdateStudent(Models.Database.Student student)
         {
             _context.Students.Update(student);

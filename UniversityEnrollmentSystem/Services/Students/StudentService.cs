@@ -22,6 +22,10 @@ namespace UniversityEnrollmentSystem.Services.Students
 
         public async Task DeleteStudent(int id)
         {
+            if (!await _studentRepository.ExistsAsync(id))
+            {
+                throw new Exception("Student not found");
+            }
             await _studentRepository.DeleteStudent(id);
         }
 
@@ -37,6 +41,12 @@ namespace UniversityEnrollmentSystem.Services.Students
 
         public async Task UpdateStudent(Student student)
         {
+            var exists = await _studentRepository.ExistsAsync(student.StudentId);
+
+            if (!exists)
+            {
+                throw new Exception($"Student with ID {student.StudentId} not found.");
+            }
             await _studentRepository.UpdateStudent(student);
         }
 
