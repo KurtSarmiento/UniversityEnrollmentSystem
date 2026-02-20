@@ -192,6 +192,101 @@ namespace UniversityEnrollmentSystem.Tests
                 Times.Never);
         }
 
+        [Fact]
+        public async Task EnrollStudent_ShouldLogHistory_WhenSuccessful()
+        {
+            var offering = new CourseOffering
+            {
+                CourseOfferingId = 1,
+                Capacity = 30,
+                Enrollments = new List<Enrollment>(),
+                Semester = new Semester
+                {
+                    StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-5)),
+                    EndDate = DateOnly.FromDateTime(DateTime.Now.AddDays(5))
+                }
+            };
+            _mockOfferingRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(offering);
 
+            await _service.EnrollStudentAsync(studentId: 10, courseOfferingId: 1);
+
+            _mockEnrollmentRepo.Verify(r => r.LogHistoryAsync(It.Is<EnrollmentHistory>(h =>
+                h.StudentId == 10 &&
+                h.ActionType == "INSERT" &&
+                h.CourseOfferingsId == 1
+            )), Times.Once);
+        }
+
+        [Fact]
+        public async Task AssignGrade_ShouldLogHistory_WhenSuccessful()
+        {
+            var enrollment = new Enrollment { EnrollmentId = 1, StudentId = 10, CourseOfferingId = 5 };
+            _mockEnrollmentRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(enrollment);
+
+            await _service.AssignGradeAsync(1, 88.5m);
+
+            _mockEnrollmentRepo.Verify(r => r.LogHistoryAsync(It.Is<EnrollmentHistory>(h =>
+                h.EnrollmentId == 1 &&
+                h.FinalGrade == 88.5m &&
+                h.ActionType == "UPDATE_GRADE"
+            )), Times.Once);
+        }
+
+
+        [Fact]
+        public async Task DropCourse_ShouldLogHistory_BeforeDeletion()
+        {
+            var enrollment = new Enrollment { EnrollmentId = 1, StudentId = 10, CourseOfferingId = 5 };
+            _mockEnrollmentRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(enrollment);
+
+            await _service.DropCourseAsync(1);
+
+            _mockEnrollmentRepo.Verify(r => r.LogHistoryAsync(It.Is<EnrollmentHistory>(h =>
+                h.ActionType == "DELETE/DROP"
+            )), Times.Once);
+
+            _mockEnrollmentRepo.Verify(r => r.DeleteAsync(1), Times.Once);
+        }
+
+        [Fact]
+        public async Task AssignGrade_ShouldNotLogHistory_WhenUpdateFails()
+        {
+            var enrollment = new Enrollment { EnrollmentId = 1, StudentId = 10 };
+
+            _mockEnrollmentRepo.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(enrollment);
+
+            _mockEnrollmentRepo.Setup(r => r.UpdateAsync(It.IsAny<Enrollment>()))
+                               .ThrowsAsync(new Exception("Database connection failed"));
+
+            await Assert.ThrowsAsync<Exception>(() => _service.AssignGradeAsync(1, 90m));
+
+            _mockEnrollmentRepo.Verify(r => r.LogHistoryAsync(It.IsAny<EnrollmentHistory>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task EnrollStudent_ShouldPopulateHistoryDetailsCorrectly()
+        {
+            var offering = new CourseOffering
+            {
+                CourseOfferingId = 5,
+                Capacity = 10,
+                Enrollments = new List<Enrollment>(),
+                Semester = new Semester
+                {
+                    StartDate = DateOnly.FromDateTime(DateTime.Now.AddDays(-1)),
+                    EndDate = DateOnly.FromDateTime(DateTime.Now.AddDays(1))
+                }
+            };
+            _mockOfferingRepo.Setup(r => r.GetByIdAsync(5)).ReturnsAsync(offering);
+
+            await _service.EnrollStudentAsync(studentId: 100, courseOfferingId: 5);
+
+            _mockEnrollmentRepo.Verify(r => r.LogHistoryAsync(It.Is<EnrollmentHistory>(h =>
+                h.ActionType == "INSERT" &&
+                h.StudentId == 100 &&
+                h.CourseOfferingsId == 5 &&
+                h.ActionDate <= DateTime.Now
+            )), Times.Once);
+        }
     }
 }

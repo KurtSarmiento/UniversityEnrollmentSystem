@@ -6,5 +6,6 @@ namespace UniversityEnrollmentSystem.Services.Enrollment
     {
         Task<bool> EnrollStudentAsync(int studentId, int courseOfferingId);
         Task<bool> AssignGradeAsync(int enrollmentId, decimal grade);
+        Task<bool> DropCourseAsync(int enrollmentId);
     }
 }

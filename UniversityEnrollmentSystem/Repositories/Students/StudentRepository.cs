@@ -17,7 +17,7 @@ namespace UniversityEnrollmentSystem.Repositories.Student
         {
             var student = _context.Students.FirstOrDefault(s => s.StudentId == id);
             _context.Remove(student);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
         public async Task<List<Models.Database.Student>> GetAllStudents()
@@ -28,6 +28,11 @@ namespace UniversityEnrollmentSystem.Repositories.Student
         public async Task<Models.Database.Student?> GetStudentById(int id)
         {
             return await _context.Students.FirstOrDefaultAsync(s => s.StudentId == id);
+        }
+
+        public async Task <bool> ExistsAsync(int id)
+        {
+            return await _context.Students.AnyAsync(s => s.StudentId == id);
         }
 
         public async Task UpdateStudent(Models.Database.Student student)
