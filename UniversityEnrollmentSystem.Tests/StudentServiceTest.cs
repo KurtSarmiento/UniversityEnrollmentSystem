@@ -77,7 +77,7 @@ namespace UniversityEnrollmentSystem.Tests
             var student = new Student
             {
                 StudentNumber = 2024001,
-                FirstName = "", // Required field missing
+                FirstName = "",
                 LastName = "Sarmiento",
             };
 
@@ -85,6 +85,66 @@ namespace UniversityEnrollmentSystem.Tests
                 _studentService.CreateStudent(student));
         }
 
+        [Fact]
+        public async Task StudentNumber_ExistsAlready()
+        {
+            var student = CreateValidStudent();
 
+            _repo.Setup(r => r.AddStudent(student))
+                 .Returns(Task.CompletedTask);
+
+            await _studentService.CreateStudent(student);
+
+            _repo.Setup(r => r.AddStudent(student))
+                 .Returns(Task.CompletedTask);
+
+            await _repo.Object.ExistsAsync(student.StudentId);
+
+            _repo.Verify(r => r.ExistsAsync(student.StudentId), Times.Once);
+        }
+
+        [Fact]
+        public async Task UpdateStudent_ShouldCallRepository_WhenStudentExists()
+        {
+            var student = CreateValidStudent();
+            _repo.Setup(r => r.ExistsAsync(student.StudentId)).ReturnsAsync(true);
+            _repo.Setup(r => r.UpdateStudent(student)).Returns(Task.CompletedTask);
+
+            await _studentService.UpdateStudent(student);
+
+            _repo.Verify(r => r.UpdateStudent(student), Times.Once);
+        }
+
+        [Fact]
+        public async Task UpdateStudent_ShouldThrowException_WhenStudentDoesNotExist()
+        {
+            var student = CreateValidStudent();
+            _repo.Setup(r => r.ExistsAsync(student.StudentId)).ReturnsAsync(false);
+
+            await Assert.ThrowsAsync<Exception>(() => _studentService.UpdateStudent(student));
+            _repo.Verify(r => r.UpdateStudent(It.IsAny<Student>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task DeleteStudent_ShouldCallRepository_WhenIdIsValid()
+        {
+            int studentId = 1;
+            _repo.Setup(r => r.ExistsAsync(studentId)).ReturnsAsync(true);
+            _repo.Setup(r => r.DeleteStudent(studentId)).Returns(Task.CompletedTask);
+
+            await _studentService.DeleteStudent(studentId);
+
+            _repo.Verify(r => r.DeleteStudent(studentId), Times.Once);
+        }
+
+        [Fact]
+        public async Task DeleteStudent_ShouldThrowException_WhenIdDoesNotExist()
+        {
+            int studentId = 100;
+            _repo.Setup(r => r.ExistsAsync(studentId)).ReturnsAsync(false);
+
+            await Assert.ThrowsAsync<Exception>(() => _studentService.DeleteStudent(studentId));
+            _repo.Verify(r => r.DeleteStudent(It.IsAny<int>()), Times.Never);
+        }
     }
 }

@@ -41,20 +41,55 @@ namespace UniversityEnrollmentSystem.Services.Enrollment
             };
 
             await _enrollmentRepo.AddAsync(enrollment);
+
+            await _enrollmentRepo.LogHistoryAsync(new EnrollmentHistory
+            {
+                EnrollmentId = enrollment.EnrollmentId,
+                StudentId = studentId,
+                CourseOfferingsId = courseOfferingId,
+                ActionType = "INSERT",
+                ActionDate = DateTime.Now
+            });
             return true;
         }
 
         public async Task<bool> AssignGradeAsync(int enrollmentId, decimal grade)
         {
             var enrollment = await _enrollmentRepo.GetByIdAsync(enrollmentId);
-            if (enrollment == null)
-                throw new ArgumentException("Enrollment not found.");
-
-            if (grade < 0 || grade > 100)
-                throw new ArgumentOutOfRangeException(nameof(grade), "Grade must be between 0 and 100.");
+            if (enrollment == null) throw new ArgumentException("Enrollment not found.");
+            if (grade < 0 || grade > 100) throw new ArgumentOutOfRangeException(nameof(grade), "Grade must be between 0 and 100.");
 
             enrollment.FinalGrade = grade;
             await _enrollmentRepo.UpdateAsync(enrollment);
+
+            await _enrollmentRepo.LogHistoryAsync(new EnrollmentHistory
+            {
+                EnrollmentId = enrollment.EnrollmentId,
+                StudentId = enrollment.StudentId,
+                CourseOfferingsId = enrollment.CourseOfferingId,
+                FinalGrade = grade,
+                ActionType = "UPDATE_GRADE",
+                ActionDate = DateTime.Now
+            });
+
+            return true;
+        }
+
+        public async Task<bool> DropCourseAsync(int enrollmentId)
+        {
+            var enrollment = await _enrollmentRepo.GetByIdAsync(enrollmentId);
+            if (enrollment == null) return false;
+
+            await _enrollmentRepo.LogHistoryAsync(new EnrollmentHistory
+            {
+                EnrollmentId = enrollment.EnrollmentId,
+                StudentId = enrollment.StudentId,
+                CourseOfferingsId = enrollment.CourseOfferingId,
+                ActionType = "DELETE/DROP",
+                ActionDate = DateTime.Now
+            });
+
+            await _enrollmentRepo.DeleteAsync(enrollmentId);
             return true;
         }
     }

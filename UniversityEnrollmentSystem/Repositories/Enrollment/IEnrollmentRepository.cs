@@ -13,5 +13,6 @@ namespace UniversityEnrollmentSystem.Repositories.Enrollment
         Task DeleteAsync(int id);
         Task<bool> ExistsAsync(int id);
         Task<bool> IsStudentEnrolledInOfferingAsync(int studentId, int courseOfferingId);
+        Task LogHistoryAsync(EnrollmentHistory history);
     }
 }
