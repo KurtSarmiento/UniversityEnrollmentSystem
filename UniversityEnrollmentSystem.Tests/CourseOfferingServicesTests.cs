@@ -10,30 +10,30 @@ using UniversityEnrollmentSystem.Services;
 
 namespace UniversityEnrollmentSystem.Tests
 {
-        public class CourseOfferingServiceTests
+    public class CourseOfferingServiceTests
+    {
+        private readonly Mock<ICourseOfferingRepository> _mock;
+        private readonly ICourseOfferingService _service;
+
+        public CourseOfferingServiceTests()
         {
-            private readonly Mock<ICourseOfferingRepository> _mock;
-            private readonly ICourseOfferingService _service;
+            _mock = new Mock<ICourseOfferingRepository>();
+            _service = new CourseOfferingService(_mock.Object);
+        }
 
-            public CourseOfferingServiceTests()
-            {
-                _mock = new Mock<ICourseOfferingRepository>();
-                _service = new CourseOfferingService(_mock.Object);
-            }
+        [Fact]
+        public async Task CreateOffering_ShouldFail_WhenDuplicateCourseSemester()
+        {
+            var offering = new CourseOffering { CourseId = 1, SemesterId = 2 };
 
-            [Fact]
-            public async Task CreateOffering_ShouldFail_WhenDuplicateCourseSemester()
-            {
-                var offering = new CourseOffering { CourseId = 1, SemesterId = 2 };
+            _mock.Setup(repo => repo.IsDuplicateOfferingAsync(offering.CourseId, offering.SemesterId))
+                             .ReturnsAsync(true);
 
-                _mock.Setup(repo => repo.IsDuplicateOfferingAsync(offering.CourseId, offering.SemesterId))
-                                 .ReturnsAsync(true);
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateOfferingAsync(offering));
+            Assert.Equal("Course offering already exists for this semester.", ex.Message);
 
-                var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateOfferingAsync(offering));
-                Assert.Equal("Course offering already exists for this semester.", ex.Message);
-
-                _mock.Verify(repo => repo.AddAsync(It.IsAny<CourseOffering>()), Times.Never);
-            }
+            _mock.Verify(repo => repo.AddAsync(It.IsAny<CourseOffering>()), Times.Never);
+        }
         [Fact]
         public async Task DeleteCourse_ShouldReturnFalse_WhenEnrollmentsExist()
         {
@@ -41,11 +41,66 @@ namespace UniversityEnrollmentSystem.Tests
 
             _mock.Setup(repo => repo.ExistsAsync(courseId))
                            .ReturnsAsync(true);
+            _mock.Setup(repo => repo.HasEnrollmentsForCourseAsync(courseId))
+                            .ReturnsAsync(true);
             var result = await _service.DeleteCourseAsync(courseId);
 
             Assert.False(result);
 
-            _mock.Verify(repo => repo.DeleteAsync(It.IsAny<int>()), Times.Never); //Fix this error
+            _mock.Verify(repo => repo.DeleteAsync(It.IsAny<int>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task DeleteCourse_ShouldFail_WhenEnrollmentExists()
+        {
+            int courseId = 1;
+            _mock.Setup(repo => repo.ExistsAsync(courseId))
+                           .ReturnsAsync(true);
+            _mock.Setup(repo => repo.HasEnrollmentsForCourseAsync(courseId))
+                            .ReturnsAsync(true);
+            var result = await _service.DeleteCourseAsync(courseId);
+            Assert.False(result);
+            _mock.Verify(repo => repo.DeleteAsync(It.IsAny<int>()), Times.Never);
+        }
+        [Fact]
+        public async Task CourseCode_ShouldBeUnique()
+        {
+            var offering = new CourseOffering { CourseId = 1, SemesterId = 2 };
+            _mock.Setup(repo => repo.IsDuplicateOfferingAsync(offering.CourseId, offering.SemesterId))
+                             .ReturnsAsync(true);
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateOfferingAsync(offering));
+            Assert.Equal("Course offering already exists for this semester.", ex.Message);
+            _mock.Verify(repo => repo.AddAsync(It.IsAny<CourseOffering>()), Times.Never);
+        }
+        [Fact]
+        public async Task UpdateCourse_ShouldPersistChanges()
+        {
+            var offering = new CourseOffering { CourseOfferingId = 1, CourseId = 1, SemesterId = 2 };
+            _mock.Setup(repo => repo.GetByIdAsync(offering.CourseOfferingId))
+                             .ReturnsAsync(offering);
+            offering.SemesterId = 3;
+            await _service.CreateOfferingAsync(offering);
+            _mock.Verify(repo => repo.AddAsync(offering), Times.Once);
+        }
+
+        [Fact]
+        public async Task CourseOffering_ShouldBeUnique_PerSemester()
+        {
+            var offering = new CourseOffering { CourseId = 1, SemesterId = 2 };
+            _mock.Setup(repo => repo.IsDuplicateOfferingAsync(offering.CourseId, offering.SemesterId))
+                             .ReturnsAsync(true);
+            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateOfferingAsync(offering));
+            Assert.Equal("Course offering already exists for this semester.", ex.Message);
+            _mock.Verify(repo => repo.AddAsync(It.IsAny<CourseOffering>()), Times.Never);
+        }
+        [Fact]
+        public async Task Repository_GetById_ShouldReturnNull_WhenInvalid()
+        {
+            int Id = 27;
+            _mock.Setup(repo => repo.GetByIdAsync(Id))
+                             .ReturnsAsync((CourseOffering)null);
+            var result = await _service.GetOfferingByIdAsync(Id);
+            Assert.Null(result);
         }
     }
 }
