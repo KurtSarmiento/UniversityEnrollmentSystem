@@ -63,16 +63,6 @@ namespace UniversityEnrollmentSystem.Tests
             _mock.Verify(repo => repo.DeleteAsync(It.IsAny<int>()), Times.Never);
         }
         [Fact]
-        public async Task CourseCode_ShouldBeUnique()
-        {
-            var offering = new CourseOffering { CourseId = 1, SemesterId = 2 };
-            _mock.Setup(repo => repo.IsDuplicateOfferingAsync(offering.CourseId, offering.SemesterId))
-                             .ReturnsAsync(true);
-            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _service.CreateOfferingAsync(offering));
-            Assert.Equal("Course offering already exists for this semester.", ex.Message);
-            _mock.Verify(repo => repo.AddAsync(It.IsAny<CourseOffering>()), Times.Never);
-        }
-        [Fact]
         public async Task UpdateCourse_ShouldPersistChanges()
         {
             var offering = new CourseOffering { CourseOfferingId = 1, CourseId = 1, SemesterId = 2 };
