@@ -191,7 +191,5 @@ namespace UniversityEnrollmentSystem.Tests
                 r => r.AddAsync(It.IsAny<Models.Database.Enrollment>()),
                 Times.Never);
         }
-
-
     }
 }
